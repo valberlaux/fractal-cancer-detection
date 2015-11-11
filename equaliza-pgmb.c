@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
+#include <string.h>
 #include <float.h>
 
 #define HI(num) (((num) & 0x0000FF00) >> 8)
@@ -227,10 +229,10 @@ int main()
     FILE *arq, *saida;
 
     PGMData matrix;
-    readPGM("/home/raiza/mdb012.pgm", &matrix);
+    readPGM("mdb012.pgm", &matrix);
 
     equalizar_imagem(&matrix);
- writePGM("/home/raiza/B005.pgm", &matrix);
+    writePGM("B005.pgm", &matrix);
    // writePGM("/home/raiza/benigno/B005.pgm", &matrix);
 
 
