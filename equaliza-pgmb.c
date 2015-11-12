@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include <float.h>
+#include <math.h>
+
+#define TAMANHO 1024
 
 #define HI(num) (((num) & 0x0000FF00) >> 8)
 #define LO(num) ((num) & 0x000000FF)
@@ -223,19 +225,80 @@ void writePGM(const char *filename, const PGMData *data)
     deallocate_dynamic_matrix(data->matrix, data->row);
 }
 
+//cálculo da dimensão fractal
+//http://www.wahl.org/fe/HTML_version/link/FE4W/c4.htm#box
 
-int main()
+int caixaPertence(int **caixa, int tamanho){
+    int i, j;
+    for (i = 0; i < tamanho; i++) {
+        for (j = 0; j < tamanho; j++) {
+            if (caixa[i][j] != 0){
+                
+                if (caixa[i][j] != 255) {
+                    printf("Opa. Algum bit não está binarizado nessa matriz! [PIXEL [%d][%d]\n", i, j);
+                }
+                
+                return 1; // há um pixel branco na caixa
+            }
+        }
+    }
+    return 0; // todos pretos
+}
+
+int proximoTamanhoDeCaixa(int tamanhoAtual){
+    /*
+     Não está funcionando.
+     Se o raio original fosse 35, o lado mediria 70px,
+     cada caixa mediria 7px. Assim, o próximo tamanho fica 3,
+     mas 70 não dá pra dividir em caixas de 3px.
+     */
+    return (int)tamanhoAtual/2;
+}
+
+int calculaDimensaoFractal(PGMData *data, int x, int y, int raio){
+    
+    int quantidadeCaixas, caixasPertencentes = 0;
+    /*
+     Define o tamanho da caixa
+     Na primeira iteração, região é dividida 10x10 caixas.
+     Depois, o tamanho das caixas é calculado pela fç proximoTamanhoDeCaixa()
+     */
+
+    while (raio%5 != 0)
+        raio++;
+
+    //determina o tamanho da primeira caixa. As próximas serão definidas por uma função
+    int tamanhoCaixa = raio*0.2;
+    
+    while (tamanhoCaixa > 0) {
+    
+        int i, j;
+        for (i = 0; i < raio*2/tamanhoCaixa; i++) {
+            for (j = 0; j < raio*2/tamanhoCaixa; j++) {
+                caixasPertencentes += caixaPertence(&data->matrix[x - raio + j*tamanhoCaixa, y - raio + i*tamanhoCaixa], tamanhoCaixa);
+            }
+        }
+        
+        quantidadeCaixas = (raio*2)/tamanhoCaixa * (raio*2)/tamanhoCaixa;
+        
+        // adicionar a uma lista a tupla {QTDE CAIXAS PREENCHIDAS; PROPORÇÃO} pra depois calcular as combinações com o log
+        
+        tamanhoCaixa = proximoTamanhoDeCaixa(tamanhoCaixa);
+    }
+    
+    return 0;
+}
+
+int main(int argc, const char * argv[])
 {
     FILE *arq, *saida;
 
     PGMData matrix;
     readPGM("mdb012.pgm", &matrix);
-
     equalizar_imagem(&matrix);
-    writePGM("B005.pgm", &matrix);
-   // writePGM("/home/raiza/benigno/B005.pgm", &matrix);
-
-
-
+    
+    //calculaDimensaoFractal(&matrix, x, TAMANHO-y, raio) // x e y podem vir na chamada pelo argv
+    //writePGM("B005.pgm", &matrix);
+    // writePGM("/home/raiza/benigno/B005.pgm", &matrix);
 
 }
