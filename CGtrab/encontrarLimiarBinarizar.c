@@ -227,6 +227,8 @@ void writePGM(const char *filename, const PGMData *data)
     deallocate_dynamic_matrix(data->matrix, data->row);
 }
 
+
+// binariza todos os pixels da imagem de acordo com o dado limiar
 void binarizarPGM(PGMData *data, int limiar)
 {
 	int i,j,lo;
@@ -241,6 +243,8 @@ void binarizarPGM(PGMData *data, int limiar)
 	}
 }
 
+// encontra e retorna o valor de limiar aceito para a imagem, dentro dos parametros definidos
+// xc, yc = coordenadas do centro do tumor, tal com estao no arquivo fonte; raio = raio tal qual esta no arquivo
 int findLimiar(PGMData *data, int xc, int yc, int raio)
 {
 	int limiar = LIMIAR_INICIAL,pixelValue;
