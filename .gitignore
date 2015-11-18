@@ -34,3 +34,5 @@ out
 
 # PGMs
 *.pgm
+/.project
+/Makefile~
