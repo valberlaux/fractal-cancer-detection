@@ -1,3 +1,3 @@
 all:
-	gcc -o out equaliza-pgmb.c
+	gcc -o out analisemamografia.c
 	./out
