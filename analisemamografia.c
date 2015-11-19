@@ -263,7 +263,6 @@ int acharLimiar(PGMData *data, int xc, int yc, int raio)
 
 	yc = TAMANHO - yc;
 
-//	data->matrix[yc][xc] = 0;
 	while(1)
 	{
 		for(xi = (-1)*raio; xi <= raio; xi++)
@@ -283,17 +282,9 @@ int acharLimiar(PGMData *data, int xc, int yc, int raio)
 			}
 
 			pixelsTotal+=2;
-//			data->matrix[yi*-1 + yc][xi+xc] = 0;
-//			data->matrix[yi + yc][xi+xc] = 0;
 		}
-//		break;
 
 		porcentagem = (float)pixelsBrancos/(float)pixelsTotal;
-//		printf("%d\n",pixelsBrancos);
-//		printf("%d\n",pixelsTotal);
-//		printf("%f\n",porcentagem);
-//		printf("%d\n",limiar);
-//		printf("\n\n");
 
 		if(porcentagem > LIMIAR_POCENTAGEM_ACEITAVEL)
 		{
@@ -308,6 +299,52 @@ int acharLimiar(PGMData *data, int xc, int yc, int raio)
 	}
 
 	return limiar;
+}
+
+void teste1(PGMData *data, int xc, int yc, int raio)
+{
+	int limiar = LIMIAR_INICIAL,pixelValue;
+	int xi,yi;
+	int pixelsBrancos=0,pixelsTotal=0;
+	float porcentagem;
+
+	yc = TAMANHO - yc;
+
+	data->matrix[yc][xc] = 0;
+
+		int i,j;
+		for(i = -7; i < 7; i++)
+		{
+			 for(j = -7; j < 7; j++)
+		     {
+		    	 data->matrix[yc + i][xc + j] = 0;
+		     }
+		}
+		for(i = -3; i < 3; i++)
+		{
+			for(j = -3; j < 3; j++)
+			{
+				data->matrix[yc + i][xc + j] = 255;
+			}
+		}
+}
+
+void teste2(PGMData *data, int xc, int yc, int raio)
+{
+	int limiar = LIMIAR_INICIAL,pixelValue;
+	int xi,yi;
+	int pixelsBrancos=0,pixelsTotal=0;
+	float porcentagem;
+
+	yc = TAMANHO - yc;
+
+	for(xi = (-1)*raio; xi <= raio; xi++)
+	{
+		yi = round(sqrt(raio*raio - xi*xi));
+
+		data->matrix[yi*-1 + yc][xi+xc] = data->matrix[yi*-1 + yc][xi+xc] ? 0 : 255;
+		data->matrix[yi + yc][xi+xc] = data->matrix[yi + yc][xi+xc] ? 0 : 255;
+	}
 }
 
 //cálculo da dimensão fractal
@@ -395,25 +432,27 @@ int calculaDimensaoFractal(PGMData *data, int x, int y, int raio){
 }
 
 
-int main()
+int main(int argc, const char * argv[])
 {
-//	FILE *arq, *saida;
 	PGMData matrix;
 	int limiar,xc,yc,raio;
 
-	readPGM("mdb028.pgm", &matrix);
-//	readPGM("/home/leo/bufferdetrabalho/mdb013.pgm", &matrix);
+	readPGM(argv[1], &matrix);
 
 	equalizar_imagem(&matrix);
 
-//	limiar = acharLimiar(&matrix,xc,yc,raio);
-	limiar = acharLimiar(&matrix,338,314,56);//28
-//	limiar = acharLimiar(&matrix,667,365,31);//13
+	xc = atoi(argv[3]);
+	yc = atoi(argv[4]);
+	raio = atoi(argv[5]);
+    
+    //calculaDimensaoFractal(&matrix, 338, 313, 56); // Válber usando. Ainda não está pronto
 
+	teste1(&matrix,xc,yc,raio);
+
+	limiar = acharLimiar(&matrix,xc,yc,raio);
 	binarizarPGM(&matrix, limiar);
 
-    calculaDimensaoFractal(&matrix, 338, 313, 56);
-    
-	writePGM("mdb028l.pgm", &matrix);
-//	writePGM("/home/leo/bufferdetrabalho/mdb013l.pgm", &matrix);
+	teste2(&matrix,xc,yc,raio);
+
+	writePGM(argv[2], &matrix);
 }
