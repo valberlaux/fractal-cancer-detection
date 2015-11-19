@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <float.h>
 #include <math.h>
+#include <string.h>
+#include <ctype.h>
 
 #define HI(num) (((num) & 0x0000FF00) >> 8)
 #define LO(num) ((num) & 0x000000FF)
@@ -18,6 +20,13 @@ typedef struct _PGMData {
     int max_gray;
     int **matrix;
 } PGMData;
+
+typedef struct _Tripla {
+    int totalCaixas;
+    int caixasPreenchidas;
+    int proporcao;
+    struct _Tripla *proxima;
+} Tripla;
 
 
 int binarizacao(int pixelValue, int limiar)
@@ -245,7 +254,7 @@ void binarizarPGM(PGMData *data, int limiar)
 
 // encontra e retorna o valor de limiar aceito para a imagem, dentro dos parametros definidos
 // xc, yc = coordenadas do centro do tumor, tal com estao no arquivo fonte; raio = raio tal qual esta no arquivo
-int findLimiar(PGMData *data, int xc, int yc, int raio)
+int acharLimiar(PGMData *data, int xc, int yc, int raio)
 {
 	int limiar = LIMIAR_INICIAL,pixelValue;
 	int xi,yi;
@@ -304,10 +313,24 @@ int findLimiar(PGMData *data, int xc, int yc, int raio)
 //cálculo da dimensão fractal
 //http://www.wahl.org/fe/HTML_version/link/FE4W/c4.htm#box
 
-int caixaPertence(int **caixa, int tamanho){
+void imprimeMatriz(int **matriz, int x, int y, int tamanho)
+{
+    printf("Params: %d, %d, %d\n Matriz: \n", x, y, tamanho);
     int i, j;
-    for (i = 0; i < tamanho; i++) {
-        for (j = 0; j < tamanho; j++) {
+    for (i = x; i < x + tamanho; i++) {
+        printf("\n");
+        for (j = y; j < y + tamanho; j++) {
+            printf("%d ", matriz[i][j]);
+        }
+    }
+    printf("Fim\n\n");
+}
+
+int caixaPertence(int **caixa, int x, int y, int tamanho){
+    int i, j;
+    for (i = x; i < x + tamanho; i++) {
+        for (j = y; j < y + tamanho; j++) {
+            
             if (caixa[i][j] != 0){
                 
                 if (caixa[i][j] != 255) {
@@ -316,53 +339,59 @@ int caixaPertence(int **caixa, int tamanho){
                 
                 return 1; // há um pixel branco na caixa
             }
+            
         }
     }
     return 0; // todos pretos
 }
 
-int proximoTamanhoDeCaixa(int tamanhoAtual){
-    /*
-     Não está funcionando.
-     Se o raio original fosse 35, o lado mediria 70px,
-     cada caixa mediria 7px. Assim, o próximo tamanho fica 3,
-     mas 70 não dá pra dividir em caixas de 3px.
-     */
-    return (int)tamanhoAtual/2;
-}
-
 int calculaDimensaoFractal(PGMData *data, int x, int y, int raio){
     
-    int quantidadeCaixas, caixasPertencentes = 0;
+    y = TAMANHO - y;
+    
+    Tripla resultados[100];
+    
+    int quantidadeCaixas, caixasPertencentes = 0, k = 0;
     /*
      Define o tamanho da caixa
      Na primeira iteração, região é dividida 10x10 caixas.
-     Depois, o tamanho das caixas é calculado pela fç proximoTamanhoDeCaixa()
+     Depois, os lados são dividos pela metade a cada iteração
      */
     
-    while (raio%5 != 0)
-        raio++;
+    float tamanhoCaixa = raio*0.2; // primeira caixa
     
-    //determina o tamanho da primeira caixa. As próximas serão definidas por uma função
-    int tamanhoCaixa = raio*0.2;
-    
-    while (tamanhoCaixa > 0) {
+    while (tamanhoCaixa >= 1) {
         
         int i, j;
-        for (i = 0; i < raio*2/tamanhoCaixa; i++) {
-            for (j = 0; j < raio*2/tamanhoCaixa; j++) {
-                caixasPertencentes += caixaPertence(&data->matrix[x - raio + j*tamanhoCaixa, y - raio + i*tamanhoCaixa], tamanhoCaixa);
+        for (i = 0; i < ((raio*2)/tamanhoCaixa); i++) {
+            for (j = 0; j < ((raio*2)/tamanhoCaixa); j++) {
+                
+                //printf("Estou chamando os seguintes valores: matriz[%d][%d], tamanho: %d\n", y - raio + (int)floor(i * tamanhoCaixa), x - raio + (int)floor(j * tamanhoCaixa), (int)ceil(tamanhoCaixa));
+                
+                caixasPertencentes += caixaPertence(data->matrix,
+                                                    y - raio + (int)floor(i * tamanhoCaixa),
+                                                    x - raio + (int)floor(j * tamanhoCaixa),
+                                                    (int)ceil(tamanhoCaixa));
+
             }
         }
         
         quantidadeCaixas = (raio*2)/tamanhoCaixa * (raio*2)/tamanhoCaixa;
+        printf("Iteração: Qdte de caixas: %d; Tamanho: %f; Caixas preenchidas: %d\n", quantidadeCaixas, tamanhoCaixa, caixasPertencentes);
         
-        // adicionar a uma lista a tupla {QTDE CAIXAS PREENCHIDAS; PROPORÇÃO} pra depois calcular as combinações com o log
+        resultados[k].totalCaixas = quantidadeCaixas;
+        resultados[k].caixasPreenchidas = caixasPertencentes;
+        resultados[k].proporcao = (int)pow(2,k);
         
-        tamanhoCaixa = proximoTamanhoDeCaixa(tamanhoCaixa);
+        return 1; //para abortar aqui. Rodando apenas uma iteração para testes
+        
+        tamanhoCaixa = tamanhoCaixa/2;
+        k++;
     }
     
-    return 0;
+    //loop para calcular as combinacoes
+    
+    return 1; // retornar a dimensão :P
 }
 
 
@@ -377,12 +406,14 @@ int main()
 
 	equalizar_imagem(&matrix);
 
-//	limiar = findLimiar(&matrix,xc,yc,raio);
-	limiar = findLimiar(&matrix,338,314,56);//28
-//	limiar = findLimiar(&matrix,667,365,31);//13
+//	limiar = acharLimiar(&matrix,xc,yc,raio);
+	limiar = acharLimiar(&matrix,338,314,56);//28
+//	limiar = acharLimiar(&matrix,667,365,31);//13
 
 	binarizarPGM(&matrix, limiar);
 
+    calculaDimensaoFractal(&matrix, 338, 313, 56);
+    
 	writePGM("mdb028l.pgm", &matrix);
 //	writePGM("/home/leo/bufferdetrabalho/mdb013l.pgm", &matrix);
 }
