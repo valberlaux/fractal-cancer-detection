@@ -350,7 +350,7 @@ void teste2(PGMData *data, int xc, int yc, int raio)
 //cálculo da dimensão fractal
 //http://www.wahl.org/fe/HTML_version/link/FE4W/c4.htm#box
 
-void imprimeMatriz(int **matriz, int x, int y, int tamanho)
+void imprimeMatriz(int **matriz, int x, int y, int tamanho) // @TODO valberlaux método utilitário para testes. Excluir ao final
 {
     printf("Params: %d, %d, %d\n Matriz: \n", x, y, tamanho);
     int i, j;
@@ -371,7 +371,8 @@ int caixaPertence(int **caixa, int x, int y, int tamanho){
             if (caixa[i][j] != 0){
                 
                 if (caixa[i][j] != 255) {
-                    printf("Opa. Algum bit não está binarizado nessa matriz! [PIXEL [%d][%d]\n", i, j);
+                    printf("Opa. Algum bit não está binarizado nessa matriz! [PIXEL [%d][%d], com valor %d\n", i, j, caixa[i][j]);
+                    exit(1);
                 }
                 
                 return 1; // há um pixel branco na caixa
@@ -382,7 +383,25 @@ int caixaPertence(int **caixa, int x, int y, int tamanho){
     return 0; // todos pretos
 }
 
-int calculaDimensaoFractal(PGMData *data, int x, int y, int raio){
+long double calculaResultado(Tripla *resultados, int n_iteracoes)
+{
+    int i, j, contador = 0;
+    long double dimensao = 0;
+    
+    for (i = 1; i < n_iteracoes; i++) {
+        for (j = i-1; j >= 0; j--) {
+            dimensao += ((log10(resultados[i].caixasPreenchidas) - log10(resultados[j].caixasPreenchidas))/(log10(resultados[i].proporcao) - log10(resultados[j].proporcao)));
+            
+            contador++;
+            
+        }
+       
+    }
+    
+    return dimensao/contador; //retorna a média de todas as dimensões
+}
+
+long double calculaDimensaoFractal(PGMData *data, int x, int y, int raio){
     
     y = TAMANHO - y;
     
@@ -395,7 +414,7 @@ int calculaDimensaoFractal(PGMData *data, int x, int y, int raio){
      Depois, os lados são dividos pela metade a cada iteração
      */
     
-    float tamanhoCaixa = raio*0.2; // primeira caixa
+    float tamanhoCaixa = raio*0.2; //tamanho da primeira caixa
     
     while (tamanhoCaixa >= 1) {
         
@@ -403,32 +422,26 @@ int calculaDimensaoFractal(PGMData *data, int x, int y, int raio){
         for (i = 0; i < ((raio*2)/tamanhoCaixa); i++) {
             for (j = 0; j < ((raio*2)/tamanhoCaixa); j++) {
                 
-                //printf("Estou chamando os seguintes valores: matriz[%d][%d], tamanho: %d\n", y - raio + (int)floor(i * tamanhoCaixa), x - raio + (int)floor(j * tamanhoCaixa), (int)ceil(tamanhoCaixa));
-                
                 caixasPertencentes += caixaPertence(data->matrix,
                                                     y - raio + (int)floor(i * tamanhoCaixa),
                                                     x - raio + (int)floor(j * tamanhoCaixa),
                                                     (int)ceil(tamanhoCaixa));
-
             }
         }
         
-        quantidadeCaixas = (raio*2)/tamanhoCaixa * (raio*2)/tamanhoCaixa;
-        printf("Iteração: Qdte de caixas: %d; Tamanho: %f; Caixas preenchidas: %d\n", quantidadeCaixas, tamanhoCaixa, caixasPertencentes);
+        //quantidadeCaixas = (raio*2)/tamanhoCaixa * (raio*2)/tamanhoCaixa;
+        //printf("Iteração: Qdte de caixas: %d; Tamanho: %f; Caixas preenchidas: %d\n", quantidadeCaixas, tamanhoCaixa, caixasPertencentes);
         
-        resultados[k].totalCaixas = quantidadeCaixas;
+        //resultados[k].totalCaixas = quantidadeCaixas;
         resultados[k].caixasPreenchidas = caixasPertencentes;
         resultados[k].proporcao = (int)pow(2,k);
         
-        return 1; //para abortar aqui. Rodando apenas uma iteração para testes
-        
         tamanhoCaixa = tamanhoCaixa/2;
+        caixasPertencentes = 0;
         k++;
     }
     
-    //loop para calcular as combinacoes
-    
-    return 1; // retornar a dimensão :P
+    return calculaResultado(resultados, k);
 }
 
 
@@ -444,8 +457,6 @@ int main(int argc, const char * argv[])
 	xc = atoi(argv[3]);
 	yc = atoi(argv[4]);
 	raio = atoi(argv[5]);
-    
-    //calculaDimensaoFractal(&matrix, 338, 313, 56); // Válber usando. Ainda não está pronto
 
 	teste1(&matrix,xc,yc,raio);
 
@@ -454,5 +465,8 @@ int main(int argc, const char * argv[])
 
 	teste2(&matrix,xc,yc,raio);
 
+    long double dimensao = calculaDimensaoFractal(&matrix, xc, yc, raio); // Válber usando. Ainda não está pronto
+    printf("Dimensão:%LF\n\n", dimensao);
+    
 	writePGM(argv[2], &matrix);
 }
