@@ -377,7 +377,6 @@ int caixaPertence(int **caixa, int x, int y, int tamanho){
                 
                 return 1; // há um pixel branco na caixa
             }
-            
         }
     }
     return 0; // todos pretos
@@ -393,9 +392,7 @@ long double calculaResultado(Tripla *resultados, int n_iteracoes)
             dimensao += ((log10(resultados[i].caixasPreenchidas) - log10(resultados[j].caixasPreenchidas))/(log10(resultados[i].proporcao) - log10(resultados[j].proporcao)));
             
             contador++;
-            
         }
-       
     }
     
     return dimensao/contador; //retorna a média de todas as dimensões
@@ -408,12 +405,12 @@ long double calculaDimensaoFractal(PGMData *data, int x, int y, int raio){
     Tripla resultados[100];
     
     int quantidadeCaixas, caixasPertencentes = 0, k = 0;
+    
     /*
      Define o tamanho da caixa
      Na primeira iteração, região é dividida 10x10 caixas.
      Depois, os lados são dividos pela metade a cada iteração
      */
-    
     float tamanhoCaixa = raio*0.2; //tamanho da primeira caixa
     
     while (tamanhoCaixa >= 1) {
@@ -429,10 +426,6 @@ long double calculaDimensaoFractal(PGMData *data, int x, int y, int raio){
             }
         }
         
-        //quantidadeCaixas = (raio*2)/tamanhoCaixa * (raio*2)/tamanhoCaixa;
-        //printf("Iteração: Qdte de caixas: %d; Tamanho: %f; Caixas preenchidas: %d\n", quantidadeCaixas, tamanhoCaixa, caixasPertencentes);
-        
-        //resultados[k].totalCaixas = quantidadeCaixas;
         resultados[k].caixasPreenchidas = caixasPertencentes;
         resultados[k].proporcao = (int)pow(2,k);
         
@@ -442,6 +435,18 @@ long double calculaDimensaoFractal(PGMData *data, int x, int y, int raio){
     }
     
     return calculaResultado(resultados, k);
+}
+
+void grava_resultados(const char* nome_instancia, long double df)
+{
+    FILE* saida = fopen("saida.txt", "a");
+    if (saida == NULL){
+        printf("Erro ao gravar dados de saída\n");
+        exit(1);
+    }
+        
+    fprintf(saida, "%s\t%LF\n", nome_instancia, df);
+    fclose(saida);
 }
 
 
@@ -458,15 +463,17 @@ int main(int argc, const char * argv[])
 	yc = atoi(argv[4]);
 	raio = atoi(argv[5]);
 
-	teste1(&matrix,xc,yc,raio);
+	//teste1(&matrix,xc,yc,raio);
 
 	limiar = acharLimiar(&matrix,xc,yc,raio);
 	binarizarPGM(&matrix, limiar);
 
-	teste2(&matrix,xc,yc,raio);
+	//teste2(&matrix,xc,yc,raio);
 
     long double dimensao = calculaDimensaoFractal(&matrix, xc, yc, raio); // Válber usando. Ainda não está pronto
     printf("Dimensão:%LF\n\n", dimensao);
+    
+    grava_resultados(argv[1], dimensao);
     
 	writePGM(argv[2], &matrix);
 }
