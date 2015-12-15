@@ -36,3 +36,5 @@ out
 *.pgm
 /.project
 /Makefile~
+/analisemamografia.c~
+/Dados-MIAS-imagens~
