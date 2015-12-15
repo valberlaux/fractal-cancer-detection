@@ -34,23 +34,15 @@ def processarTodas(parametros):
         if dadosMIASDic.get(imagemFileName,None) is not None:
             if imagemFileName in duplicadas:
                 print(imagemFileName,"na pasta esta duplicada e nao foi escolhida uma coordedada")
-            
-#             print('./out %s %s %s %s %s %s' % (os.path.join(imagensPath,imagemFileName),\
-#                                                    os.path.join(imagensBinarizadasPath,imagemFileName +  dadosMIASDic[imagemFileName][0]),\
-#                                                    dadosMIASDic[imagemFileName][1],\
-#                                                    dadosMIASDic[imagemFileName][2],\
-#                                                    dadosMIASDic[imagemFileName][3],\
-#                                                    parametros))
-            
-            os.system('./out %s %s %s %s %s %s' % (os.path.join(imagensPath,imagemFileName),\
+                 
+            comandoString = './out %s %s %s %s %s %s' % (os.path.join(imagensPath,imagemFileName),\
                                                    os.path.join(imagensBinarizadasPath,imagemFileName +  dadosMIASDic[imagemFileName][0]),\
                                                    dadosMIASDic[imagemFileName][1],\
                                                    dadosMIASDic[imagemFileName][2],\
                                                    dadosMIASDic[imagemFileName][3],\
-                                                   parametros))
-
-
-
+                                                   parametros)    
+            print(comandoString)
+            os.system(comandoString)
 
 
 def testar(parametros):
@@ -69,29 +61,21 @@ def testar(parametros):
     
     mediaB = np.mean(listaB)
     mediaM = np.mean(listaM)
-    
-#     print(listaB,listaM)
-    
-#     if mediaB < mediaM:
-    if mediaM - mediaB >= 0.1:
-        print("ate que enfim",mediaB,mediaM,parametros)
-        
+       
+    if mediaB <= mediaM:
+        print("Media da DF dos benignos (%s) é menor ou igual a dos malignos (%s) com os parametros [%s]" % (mediaB,mediaM,parametros))
         return True
     else:
-        print("nao foi dessa vez",mediaB,mediaM)
+        print("Nao foi dessa vez",mediaB,mediaM)
         return False
     
-    
-
 def drange(start, stop, step):
     r = start
     while r < stop:
         yield r
         r += step
 
-
-def loope():
-    
+def testarParametros():
     for limiarBinarizacao in drange(-0.1,1,0.1):
         for limiarLimpar2 in drange(-0.1,1,0.1):
             for limiarLimpar3 in drange(-0.1,1,0.1):
@@ -101,18 +85,21 @@ def loope():
                 if testar(parametros):
 #                     return
                     pass
-                
                 os.system('rm -f saida.txt')
 
 if __name__ == "__main__":
     extrairDados()  
     os.system('make')
-#     processarTodas("0.3 -0.3 -0.3")
-#     p ="-0.3 0.3 1"
-    p   ="-0.3 -0.7 0.8"
+    
+    parametrosTabela1 = "0.3 -1 -1"
+    parametrosTabela2 = "-1 0.7 -1"
+    parametrosTabela3 = "-1 -1 0.8"
+    parametrosTabela4 = "0.3 0.7 0.8"
+    
+    p = parametrosTabela4
+    
     processarTodas(p)
     testar(p)
-#     loope()
     
     
     

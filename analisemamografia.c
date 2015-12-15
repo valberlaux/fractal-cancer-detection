@@ -358,39 +358,7 @@ void teste3(PGMData *data, int xc, int yc, int raio)
 	}
 }
 
-//void limpar1(PGMData *data, int xc, int yc, int raio)
-//{
-//	int xi,yi;
-//
-////	yc = TAMANHO - yc;
-//
-//	for(xi = (-1)*raio; xi <= raio; xi++)
-//	{
-//		yi = round(sqrt(raio*raio - xi*xi));
-//
-//		data->matrix[yi*-1 + yc][xi+xc] = data->matrix[yi*-1 + yc][xi+xc] ? 0 : 255;
-//		data->matrix[yi + yc][xi+xc] = data->matrix[yi + yc][xi+xc] ? 0 : 255;
-//
-//		int i,j,dim=data->row;
-//
-//		int limiar = pixelMaisClaro * 0.6;
-//
-//		for(i = 0; i < dim; i++)
-//		{
-//			for(j = 0; j < dim; j++)
-//			{
-////				if (xi+xc < i and  )
-////				{
-////					data->matrix[j][i] = 0;
-////				}
-//			}
-//		}
-//	}
-//
-//
-//}
-
-void limpar2(PGMData *data, float f)
+void limpar1(PGMData *data, float f)
 {
 	if (f >= 0){
 	int xi,yi;
@@ -416,7 +384,7 @@ void limpar2(PGMData *data, float f)
 	}
 }
 
-void limpar3(PGMData *data, float f)
+void limpar2(PGMData *data, float f)
 {
 	if (f >= 0){
 	int xi,yi;
@@ -590,24 +558,25 @@ int main(int argc, const char * argv[])
 
 //	printf("%f %f %f\n", f1,f2,f3);
 
-//	cropRegiaoDeInteresse(&matrix,xc,yc,raio);
-//	equalizar_imagem(&matrix);
+	cropRegiaoDeInteresse(&matrix,xc,yc,raio);
+	equalizar_imagem(&matrix);
 
-//	limpar2(&matrix, f2);
-//	limpar3(&matrix, f3);
+	limpar1(&matrix, f2);
+	limpar2(&matrix, f3);
 
 //	teste1(&matrix,xc,yc,raio);
 
-//	limiar = acharLimiar(&matrix,matrix.row/2,matrix.row/2,raio, f1);
-//	binarizarPGM(&matrix, limiar);
+	limiar = acharLimiar(&matrix,matrix.row/2,matrix.row/2,raio, f1);
+	binarizarPGM(&matrix, limiar);
 
-	teste2(&matrix,xc,yc,raio);
+//	teste2(&matrix,xc,yc,raio);
 //	teste3(&matrix,matrix.row/2,matrix.row/2,raio);
 
 	long double dimensao;
-//	dimensao = calculaDimensaoFractal(&matrix, matrix.row/2, matrix.row/2, raio);
-//	printf("Dimensão:%LF\n\n", dimensao);
-//	grava_resultados(argv[2], dimensao);
+	dimensao = calculaDimensaoFractal(&matrix, matrix.row/2, matrix.row/2, raio);
+	printf("Dimensão:%LF\n\n", dimensao);
+	grava_resultados(argv[2], dimensao);
+	
 //	long double dimensao = calculaDimensaoFractal(&matrix, xc, yc, raio); // Válber usando. Ainda não está pronto
 
 	writePGM(argv[2], &matrix);
