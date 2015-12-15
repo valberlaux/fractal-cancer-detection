@@ -33,7 +33,8 @@ out
 *.dSYM/
 
 # PGMs
-*.pgm
+#*.pgm
+
 /.project
 /Makefile~
 /analisemamografia.c~
